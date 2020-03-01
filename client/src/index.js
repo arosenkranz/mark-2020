@@ -1,188 +1,117 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
+import TWEEN from '@tweenjs/tween.js';
 
 import './templates/style.css';
-import lensflare from './textures/lensflare0.png';
-import lensflareTwo from './textures/lensflare3.png';
 
-import { getRandomNum } from './lib/random-number';
+// SCENE COMPONENTS
+import makeControls from './components/Controls';
+import makeCamera from './components/Camera';
+import createScene from './components/Scene';
+import createLensFlare from './components/LensFlare';
+import makeStarField from './components/Starfield';
 
 // Helpers
 import { GUI } from 'dat.gui';
 import AxisGridHelper from './lib/axes-grid';
 import MinMaxGUIHelper from './lib/minmax-helper';
+import { getRandomNum, randomRange } from './lib/random-number';
+
+const gui = new GUI();
 
 // an array of objects whose rotation to update
-const objects = [];
+const planets = [];
+const moons = [];
 
 // select where we're mounting our scene
 const canvas = document.querySelector('#root');
 // create a new renderer
-const renderer = new THREE.WebGLRenderer({ canvas, logarithmicDepthBuffer: true });
-
-function makeCamera() {
-  // set camera positioning
-  const fov = 85;
-  const aspect = window.clientWidth / window.clientHeight; // the canvas default
-  const near = 0.1;
-  const far = 1000;
-  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 20, 50);
-  camera.up.set(0, 2, 1);
-  camera.lookAt(0, 0, 0);
-
-  return camera;
-}
-
-function makeControls() {
-  const controls = new OrbitControls(camera, canvas);
-  controls.autoRotate = true;
-  controls.enableDamping = true;
-  controls.enableZoom = true;
-  controls.zoomSpeed = 0.5;
-  controls.enablePan = true;
-  controls.autoRotateSpeed = 0.2;
-  controls.update();
-
-  return controls;
-}
-
-function createScene() {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
-
-  {
-    const skyColor = 0xb1e1ff; // light blue
-    const groundColor = 0xb97a20; // brownish orange
-    const intensity = 0.04;
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-    scene.add(light);
-  }
-
-  {
-    const color = 0xffffff;
-    const intensity = 0.5;
-    const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(0, 10, 5);
-    light.target.position.set(-5, 0, 0);
-    scene.add(light);
-    scene.add(light.target);
-  }
-
-  {
-    const near = 0.1;
-    const far = 1000;
-    const color = '#010d14';
-    scene.fog = new THREE.Fog(color, near, far);
-    scene.background = new THREE.Color(color);
-  }
-
-  return scene;
-}
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  logarithmicDepthBuffer: true,
+  antialias: true
+});
 
 function makeSphereGeometry() {
   // use just one sphere for everything
   const radius = 1;
-  const widthSegments = 8;
-  const heightSegments = 8;
-  const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+  const widthSegments = 30;
+  const heightSegments = 30;
+  const sphereGeometry = new THREE.SphereGeometry(
+    radius,
+    widthSegments,
+    heightSegments
+  );
 
   return sphereGeometry;
 }
 
 function makePlanet() {
+  const orbitContainer = new THREE.Object3D();
+  orbitContainer.rotation.x = getRandomNum(-0.2, 0.2);
   const planetOrbit = new THREE.Object3D();
   planetOrbit.name = 'Planet';
-  planetOrbit.position.x = getRandomNum(-200, 200);
-  planetOrbit.position.y = getRandomNum(-10, 10);
-  solarSystem.add(planetOrbit);
-  objects.push(planetOrbit);
+
+  // planetOrbit.position.y = getRandomNum(-10, 10);
+  orbitContainer.add(planetOrbit);
+  solarSystem.add(orbitContainer);
+  planets.push(planetOrbit);
 
   // MAKE EARTH
-  const planetMaterial = new THREE.MeshPhongMaterial({ color: 0x2233ff, emissive: 0x112244 });
+  const planetMaterial = new THREE.MeshPhongMaterial({
+    color: 0x2233ff,
+    emissive: 0x112244
+  });
 
   const planetMesh = new THREE.Mesh(sphereGeometry, planetMaterial);
   const planetScale = getRandomNum(1, 7);
   planetMesh.scale.set(planetScale, planetScale, planetScale);
+  const randomX = getRandomNum(-700, -100);
+  const x = Math.round(Math.random()) ? randomX : -randomX;
+  console.log(x);
+  planetMesh.position.x = x;
   planetOrbit.add(planetMesh);
-  objects.push(planetMesh);
+  planets.push(planetMesh);
 
-  const moonOrbit = new THREE.Object3D();
-  moonOrbit.position.x = getRandomNum(-4, 4);
-  moonOrbit.position.y = getRandomNum(-4, 4);
-  planetOrbit.add(moonOrbit);
-
-  const moonMaterial = new THREE.MeshPhongMaterial({ color: 0x888888, emissive: 0x222222 });
-  const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
-  const moonScale = getRandomNum(0.2, 1.2);
-  moonMesh.scale.set(moonScale, moonScale, moonScale);
-  moonOrbit.add(moonMesh);
-  objects.push(moonMesh);
-}
-
-function makeStarField() {
-  // STARS
-  const geometry = new THREE.Geometry();
-  for (let i = 0; i < 1000; i++) {
-    const vertex = new THREE.Vector3();
-    vertex.x = Math.random() * 1000 - 500;
-    vertex.y = Math.random() * 1000 - 500;
-    vertex.z = Math.random() * 1000 - 500;
-    geometry.vertices.push(vertex);
-  }
-  const starField = new THREE.Points(
-    geometry,
-    new THREE.PointsMaterial({
-      size: 0.8,
-      color: 0xffffff
-    })
+  const tween = new TWEEN.Tween(planetOrbit.rotation).to(
+    { y: '+' + Math.PI * 2 },
+    getRandomNum(60000, 60000 * 4)
   );
-  scene.add(starField);
-  starField.position.z = 100;
+  tween
+    .onComplete(function() {
+      planetOrbit.rotation.y = 0;
+    })
+    .repeat(Infinity);
+  tween.start();
+
+  const moonCount = parseInt(getRandomNum(0, 3));
+
+  for (let i = 0; i < moonCount; i++) {
+    const moonOrbit = new THREE.Object3D();
+    moonOrbit.position.x = getRandomNum(
+      getRandomNum(-20, -7),
+      getRandomNum(8, 20)
+    );
+    planetOrbit.add(moonOrbit);
+
+    const moonMaterial = new THREE.MeshPhongMaterial({
+      color: 0x888888,
+      emissive: 0x222222
+    });
+    const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
+    const moonScale = getRandomNum(0.2, 1.2);
+    moonMesh.scale.set(moonScale, moonScale, moonScale);
+    moonOrbit.add(moonMesh);
+    moons.push(moonMesh);
+    // makeAxisGrid(moonMesh, 'moonMesh');
+  }
 }
 
-function createLensFlare() {
-  // lensflares
-  const textureLoader = new THREE.TextureLoader();
-
-  const textureFlare0 = textureLoader.load(lensflare);
-  const textureFlare3 = textureLoader.load(lensflareTwo);
-
-  addLight(0.55, 0.9, 0.5, 5000, 0, -1000);
-  addLight(0.08, 0.8, 0.5, 0, 0, -1000);
-  addLight(0.995, 0.5, 0.9, 5000, 5000, -1000);
-
-  function addLight(h, s, l, x, y, z) {
-    const light = new THREE.PointLight(0xffffff, 1.5, 2000);
-    light.color.setHSL(h, s, l);
-    light.position.set(x, y, z);
-    scene.add(light);
-
-    const lensflare = new Lensflare();
-    lensflare.addElement(new LensflareElement(textureFlare0, 250, 10, light.color));
-    lensflare.addElement(new LensflareElement(textureFlare3, 60, 0.6));
-    lensflare.addElement(new LensflareElement(textureFlare3, 70, 0.7));
-    lensflare.addElement(new LensflareElement(textureFlare3, 120, 0.9));
-    lensflare.addElement(new LensflareElement(textureFlare3, 70, 1));
-    light.add(lensflare);
-  }
+function makeAxisGrid(node, label, units) {
+  const helper = new AxisGridHelper(node, units);
+  gui.add(helper, 'visible').name(label);
 }
 
 function makeGui() {
-  const gui = new GUI();
-
-  function makeAxisGrid(node, label, units) {
-    const helper = new AxisGridHelper(node, units);
-    gui.add(helper, 'visible').name(label);
-  }
-
-  // makeAxisGrid(solarSystem, 'solarSystem', 25);
-  // makeAxisGrid(sunMesh, 'sunMesh');
-  // makeAxisGrid(planetOrbit, 'earthOrbit');
-  // makeAxisGrid(earthMesh, 'earthMesh');
-  // makeAxisGrid(moonMesh, 'moonMesh');
-
   gui.add(camera, 'fov', 1, 180).onChange(updateCamera);
 
   const minMaxGUIHelper = new MinMaxGUIHelper(camera, 'near', 'far', 0.1);
@@ -195,6 +124,53 @@ function makeGui() {
     .name('far')
     .onChange(updateCamera);
 }
+
+// set camera tween
+function targetCameraMain() {
+  var from = {
+    x: camera.position.x,
+    y: camera.position.y,
+    z: camera.position.z
+  };
+
+  var to = {
+    x: 100,
+    y: 20,
+    z: -200
+  };
+  var tween = new TWEEN.Tween(from)
+    .to(to, 5000)
+    .easing(TWEEN.Easing.Quintic.InOut)
+    .onUpdate(function() {
+      console.log(this);
+      camera.position.set(this.x, this.y, this.z);
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+    })
+    .onComplete(function() {
+      camera.lookAt(new THREE.Vector3(0, 0, 0));
+    })
+    .start();
+}
+
+function panCam(xTarget, yTarget, zTarget, tweenDuration) {
+  // TWEEN.removeAll();
+
+  const camNewPosition = {
+    x: [xTarget / 2, xTarget, randomRange(camera.position.x)],
+    y: [yTarget / 2, yTarget, randomRange(camera.position.y)],
+    z: [zTarget / 2, zTarget, randomRange(camera.position.z)]
+  };
+
+  const camTweenThere = new TWEEN.Tween(camera.position)
+    .to(camNewPosition, tweenDuration)
+    .interpolation(TWEEN.Interpolation.CatmullRom)
+    .easing(TWEEN.Easing.Quadratic.InOut)
+    .onComplete(() => panCam(xTarget, yTarget, zTarget, tweenDuration));
+
+  camTweenThere.start();
+}
+
+function targetCam() {}
 
 function updateCamera() {
   camera.updateProjectionMatrix();
@@ -213,13 +189,30 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
+var r = 200;
+var theta = 0;
+var dTheta = (2 * Math.PI) / 1000;
+
 function render(time) {
-  time *= 0.001; // convert time to seconds
+  let timeSec = time * 0.001; // convert time to seconds
+
+  theta += dTheta;
 
   // pass in each object
-  objects.forEach(obj => {
-    obj.rotation.y = time;
+  planets.forEach(obj => {
+    // obj.rotation.y = time;
+    // obj.position.x = r * Math.cos(theta);
+    // obj.position.z = r * Math.sin(theta);
   });
+
+  // moons.forEach(moon => {
+  //   moon.rotation.y = time;
+  //   moon.position.x = r * Math.cos(theta);
+  //   moon.position.z = r * Math.sin(theta);
+  // });
+
+  sunMesh.rotation.x += 0.001;
+  sunMesh.rotation.y += 0.001;
 
   // rerender camera aspect for screen resizing
   if (resizeRendererToDisplaySize(renderer)) {
@@ -227,6 +220,12 @@ function render(time) {
     camera.aspect = canvas.clientWidth / canvas.clientHeight;
     camera.updateProjectionMatrix();
   }
+
+  if (materialShader) {
+    materialShader.uniforms.time.value = time / 10000;
+  }
+
+  TWEEN.update();
   controls.update();
 
   renderer.render(scene, camera);
@@ -235,29 +234,62 @@ function render(time) {
 }
 
 const camera = makeCamera();
-const controls = makeControls();
+const controls = makeControls(camera, canvas);
 const scene = createScene();
 const sphereGeometry = makeSphereGeometry();
+
+var gridHelper = new THREE.GridHelper(1000, 100, 0x0000ff, 0x808080);
+scene.add(gridHelper);
 
 // create object to hold sun and earth
 const solarSystem = new THREE.Object3D();
 scene.add(solarSystem);
-objects.push(solarSystem);
+// planets.push(solarSystem);
+// makeAxisGrid(solarSystem, 'solarSystem', 25);
 
 // MAKE SUN
-const sunMaterial = new THREE.MeshPhongMaterial({ emissive: 0xffcc00 });
+const sunMaterial = new THREE.MeshLambertMaterial({
+  color: 'yellow',
+  transparent: false,
+  opacity: 0.5
+});
+let materialShader;
+sunMaterial.onBeforeCompile = shader => {
+  shader.uniforms.time = { value: 0 };
+  shader.vertexShader =
+    `
+         uniform float time;
+         ` + shader.vertexShader;
+  const token = '#include <begin_vertex>';
+  const customTransform = `
+        vec3 transformed = vec3(position);
+        transformed.x = position.x 
+             + sin(position.y*5.0 + time*5.0)*0.1;
+    `;
+  shader.vertexShader = shader.vertexShader.replace(token, customTransform);
+  materialShader = shader;
+};
 const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
-sunMesh.scale.set(10, 10, 10); // make the sun large
+sunMesh.scale.set(25, 25, 25); // make the sun large
 solarSystem.add(sunMesh);
-objects.push(sunMesh);
+// planets.push(sunMesh);
+// makeAxisGrid(sunMesh, 'sunMesh');
+console.log(sunMesh);
 
-makeStarField();
+makeStarField(scene);
+createLensFlare(scene);
 makeGui();
-createLensFlare();
 
 makePlanet();
-makePlanet();
-makePlanet();
+// makePlanet();
+// makePlanet();
+// makePlanet();
+// makePlanet();
 
-console.log(objects);
+panCam(400, 30, -150, 60 * 1000 * 1.2); //This pans the camera to the an x of 500, y of 200 and a z of 4000 with a duration of 1 second.
+
+// targetCameraMain();
 requestAnimationFrame(render);
+
+console.log(moons);
+console.log(planets);

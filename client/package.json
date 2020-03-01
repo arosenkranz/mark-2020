@@ -26,6 +26,7 @@
   "dependencies": {
     "@tweenjs/tween.js": "^18.5.0",
     "dat.gui": "^0.7.6",
+    "es6-tween": "^5.5.10",
     "three": "^0.113.2"
   }
 }
