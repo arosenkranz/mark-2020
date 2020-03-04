@@ -27,11 +27,6 @@ const instagram = new Instagram({
   accessToken: process.env.IG_ACCESSTOKEN
 });
 
-// Get user info
-instagram.get('users/self', (err, data) => {
-  console.log(err, data);
-});
-
 router.get('/', async (req, res) => {
   // Get a list of recently tagged media.
   try {
