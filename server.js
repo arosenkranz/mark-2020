@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static('client/dist'));
 }
 
-require('./lib/sockets')(io);
+// require('./lib/sockets')(io);
 app.use(require('./routes'));
 
 http.listen(PORT, () => console.log(`Listening on ${PORT}.`));
