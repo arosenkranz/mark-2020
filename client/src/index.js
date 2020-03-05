@@ -21,15 +21,39 @@ const gui = new GUI();
 // an array of objects whose rotation to update
 const planets = [];
 const moons = [];
+const wireframes = [];
+const rings = [];
 
-// select where we're mounting our scene
-const canvas = document.querySelector('#root');
-// create a new renderer
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  logarithmicDepthBuffer: true,
-  antialias: true
-});
+let activePlanet;
+let materialShader;
+
+// 400, 30, -150, 60 * 1000 * 1.2
+const cameraPanArr = [
+  {
+    x: 400,
+    y: 30,
+    z: -150,
+    duration: 60 * 1000
+  },
+  {
+    x: -200,
+    y: -10,
+    z: 200,
+    duration: 60 * 1000
+  },
+  {
+    x: 200,
+    y: 40,
+    z: -30,
+    duration: 60 * 1000
+  },
+  {
+    x: -500,
+    y: 10,
+    z: -240,
+    duration: 60 * 1000 * 1.2
+  }
+];
 
 function makeSphereGeometry() {
   // use just one sphere for everything
@@ -45,7 +69,9 @@ function makeSphereGeometry() {
   return sphereGeometry;
 }
 
-function makePlanet() {
+function makeDocahedron() {}
+
+function makePlanet(planetInfo) {
   const orbitContainer = new THREE.Object3D();
   orbitContainer.rotation.x = getRandomNum(-0.2, 0.2);
   const planetOrbit = new THREE.Object3D();
@@ -54,7 +80,7 @@ function makePlanet() {
   // planetOrbit.position.y = getRandomNum(-10, 10);
   orbitContainer.add(planetOrbit);
   solarSystem.add(orbitContainer);
-  planets.push(planetOrbit);
+  // planets.push(planetOrbit);
 
   // MAKE EARTH
   const planetMaterial = new THREE.MeshPhongMaterial({
@@ -85,7 +111,7 @@ function makePlanet() {
 
   const moonCount = parseInt(getRandomNum(0, 3));
 
-  for (let i = 0; i < moonCount; i++) {
+  for (let i = 0; i < 0; i++) {
     const moonOrbit = new THREE.Object3D();
     moonOrbit.position.x = getRandomNum(
       getRandomNum(-20, -7),
@@ -106,9 +132,70 @@ function makePlanet() {
   }
 }
 
-function makeAxisGrid(node, label, units) {
-  const helper = new AxisGridHelper(node, units);
-  gui.add(helper, 'visible').name(label);
+function makeWireFramePlanet(planetInfo) {
+  const orbitContainer = new THREE.Object3D();
+  orbitContainer.rotation.x = getRandomNum(-0.2, 0.2);
+  const planetOrbit = new THREE.Object3D();
+  planetOrbit.name = 'Planet';
+
+  // planetOrbit.position.y = getRandomNum(-10, 10);
+  orbitContainer.add(planetOrbit);
+  solarSystem.add(orbitContainer);
+  // planets.push(planetOrbit);
+
+  const planetMesh = wireframePlanet.clone();
+  const planetScale = getRandomNum(1, 7);
+  planetMesh.scale.set(planetScale, planetScale, planetScale);
+  const randomX = getRandomNum(-700, -100);
+  const x = Math.round(Math.random()) ? randomX : -randomX;
+  console.log(x);
+  planetMesh.position.x = x;
+  planetOrbit.add(planetMesh);
+  planets.push(planetMesh);
+
+  const tween = new TWEEN.Tween(planetOrbit.rotation).to(
+    { y: '+' + Math.PI * 2 },
+    getRandomNum(60000, 60000 * 4)
+  );
+  tween
+    .onComplete(function() {
+      planetOrbit.rotation.y = 0;
+    })
+    .repeat(Infinity);
+  tween.start();
+}
+
+function makeRing(planetInfo) {
+  const orbitContainer = new THREE.Object3D();
+  orbitContainer.rotation.x = getRandomNum(-0.2, 0.2);
+  const planetOrbit = new THREE.Object3D();
+  planetOrbit.name = 'Planet';
+
+  // planetOrbit.position.y = getRandomNum(-10, 10);
+  orbitContainer.add(planetOrbit);
+  solarSystem.add(orbitContainer);
+  // planets.push(planetOrbit);
+
+  const planetMesh = wireframePlanet.clone();
+  const planetScale = getRandomNum(1, 7);
+  planetMesh.scale.set(planetScale, planetScale, planetScale);
+  const randomX = getRandomNum(-700, -100);
+  const x = Math.round(Math.random()) ? randomX : -randomX;
+  console.log(x);
+  planetMesh.position.x = x;
+  planetOrbit.add(planetMesh);
+  planets.push(planetMesh);
+
+  const tween = new TWEEN.Tween(planetOrbit.rotation).to(
+    { y: '+' + Math.PI * 2 },
+    getRandomNum(60000, 60000 * 4)
+  );
+  tween
+    .onComplete(function() {
+      planetOrbit.rotation.y = 0;
+    })
+    .repeat(Infinity);
+  tween.start();
 }
 
 function makeGui() {
@@ -127,6 +214,9 @@ function makeGui() {
 
 // set camera tween
 function targetCameraMain() {
+  // pick new planet to look at
+  activePlanet = planets[Math.floor(Math.random() * planets.length)];
+
   var from = {
     x: camera.position.x,
     y: camera.position.y,
@@ -134,9 +224,9 @@ function targetCameraMain() {
   };
 
   var to = {
-    x: 100,
-    y: 20,
-    z: -200
+    x: activePlanet.x,
+    y: activePlanet.y,
+    z: activePlanet.z
   };
   var tween = new TWEEN.Tween(from)
     .to(to, 5000)
@@ -152,25 +242,29 @@ function targetCameraMain() {
     .start();
 }
 
-function panCam(xTarget, yTarget, zTarget, tweenDuration) {
-  // TWEEN.removeAll();
-
+function panCam({
+  x: xTarget,
+  y: yTarget,
+  z: zTarget,
+  duration: tweenDuration
+}) {
   const camNewPosition = {
     x: [xTarget / 2, xTarget, randomRange(camera.position.x)],
     y: [yTarget / 2, yTarget, randomRange(camera.position.y)],
     z: [zTarget / 2, zTarget, randomRange(camera.position.z)]
   };
 
+  const newTarget =
+    cameraPanArr[Math.floor(Math.random() * cameraPanArr.length)];
+
   const camTweenThere = new TWEEN.Tween(camera.position)
     .to(camNewPosition, tweenDuration)
     .interpolation(TWEEN.Interpolation.CatmullRom)
-    .easing(TWEEN.Easing.Quadratic.InOut)
-    .onComplete(() => panCam(xTarget, yTarget, zTarget, tweenDuration));
+    .easing(TWEEN.Easing.Quadratic.Easing)
+    .onComplete(() => panCam(newTarget));
 
   camTweenThere.start();
 }
-
-function targetCam() {}
 
 function updateCamera() {
   camera.updateProjectionMatrix();
@@ -189,14 +283,8 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
-var r = 200;
-var theta = 0;
-var dTheta = (2 * Math.PI) / 1000;
-
 function render(time) {
   let timeSec = time * 0.001; // convert time to seconds
-
-  theta += dTheta;
 
   // pass in each object
   planets.forEach(obj => {
@@ -211,6 +299,12 @@ function render(time) {
   //   moon.position.z = r * Math.sin(theta);
   // });
 
+  rings.forEach(ring => {
+    ring.rotation.y += 0.05;
+    ring.rotation.x += 0.01;
+    ring.rotation.z -= 0.05;
+  });
+
   sunMesh.rotation.x += 0.001;
   sunMesh.rotation.y += 0.001;
 
@@ -221,9 +315,9 @@ function render(time) {
     camera.updateProjectionMatrix();
   }
 
-  if (materialShader) {
-    materialShader.uniforms.time.value = time / 10000;
-  }
+  // if (materialShader) {
+  //   materialShader.uniforms.time.value = time / 10000;
+  // }
 
   TWEEN.update();
   controls.update();
@@ -233,27 +327,36 @@ function render(time) {
   requestAnimationFrame(render);
 }
 
+// select where we're mounting our scene
+const canvas = document.querySelector('#root');
+// create a new renderer
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  logarithmicDepthBuffer: true,
+  antialias: true
+});
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0xffffff, 0);
+renderer.shadowMapSoft = true;
+renderer.autoClear = false;
+
 const camera = makeCamera();
 const controls = makeControls(camera, canvas);
 const scene = createScene();
 const sphereGeometry = makeSphereGeometry();
+const lowPolySphere = new THREE.DodecahedronGeometry(1, 1);
 
-var gridHelper = new THREE.GridHelper(1000, 100, 0x0000ff, 0x808080);
-scene.add(gridHelper);
-
-// create object to hold sun and earth
+// create object to hold all planets
 const solarSystem = new THREE.Object3D();
 scene.add(solarSystem);
-// planets.push(solarSystem);
-// makeAxisGrid(solarSystem, 'solarSystem', 25);
-
 // MAKE SUN
 const sunMaterial = new THREE.MeshLambertMaterial({
   color: 'yellow',
   transparent: false,
   opacity: 0.5
 });
-let materialShader;
+
 sunMaterial.onBeforeCompile = shader => {
   shader.uniforms.time = { value: 0 };
   shader.vertexShader =
@@ -269,24 +372,72 @@ sunMaterial.onBeforeCompile = shader => {
   shader.vertexShader = shader.vertexShader.replace(token, customTransform);
   materialShader = shader;
 };
-const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
+
+const sunMaterial2 = new THREE.MeshPhongMaterial({
+  color: new THREE.Color('#fff'),
+  emissive: new THREE.Color('#3c0752'),
+  shininess: new THREE.Color('#fc6bcf'),
+  shininess: 10,
+  flatShading: true,
+  transparent: 1,
+  opacity: 1,
+  side: THREE.DoubleSide
+});
+
+const sunMesh = new THREE.Mesh(lowPolySphere, sunMaterial2);
+sunMesh.receiveShadow = true;
+sunMesh.castShadow = true;
 sunMesh.scale.set(25, 25, 25); // make the sun large
 solarSystem.add(sunMesh);
-// planets.push(sunMesh);
-// makeAxisGrid(sunMesh, 'sunMesh');
-console.log(sunMesh);
+
+const wireframePlanet = new THREE.Mesh(
+  lowPolySphere,
+  new THREE.MeshPhongMaterial({
+    color: new THREE.Color('#fff'),
+    emissive: new THREE.Color('#fc6bcf'),
+    shininess: new THREE.Color('#fff'),
+    shininess: 10,
+    shading: THREE.FlatShading,
+    transparent: 1,
+    opacity: 0.7,
+    wireframe: true
+  })
+);
+
+wireframePlanet.scale.set(31, 31, 31);
+wireframePlanet.receiveShadow = true;
+wireframePlanet.castShadow = false;
+wireframes.push(wireframePlanet);
+// solarSystem.add(wireframePlanet);
+
+const ringMaterial = new THREE.MeshPhongMaterial({
+  color: new THREE.Color('#fff'),
+  emissive: new THREE.Color('#fc6bcf'),
+  shininess: new THREE.Color('#fff'),
+  shininess: 10,
+  flatShading: true,
+  transparent: 1,
+  opacity: 1,
+  wireframe: true
+});
+
+const ringGeometry = new THREE.TorusBufferGeometry(35, 8, 5, 20);
+const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+// ringMesh.scale.set(45, 45, 45);
+rings.push(ringMesh);
+solarSystem.add(ringMesh);
 
 makeStarField(scene);
 createLensFlare(scene);
 makeGui();
 
 makePlanet();
-// makePlanet();
-// makePlanet();
-// makePlanet();
-// makePlanet();
+makePlanet();
+makeWireFramePlanet();
+makeWireFramePlanet();
 
-panCam(400, 30, -150, 60 * 1000 * 1.2); //This pans the camera to the an x of 500, y of 200 and a z of 4000 with a duration of 1 second.
+const newTarget = cameraPanArr[Math.floor(Math.random() * cameraPanArr.length)];
+// panCam(newTarget);
 
 // targetCameraMain();
 requestAnimationFrame(render);

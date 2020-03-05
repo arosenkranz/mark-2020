@@ -5,7 +5,10 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.js',
+  entry: {
+    app: './src/index.js',
+    mobile: './src/mobile.js'
+  },
   devtool: 'inline-source-map',
   plugins: [
     new MiniCssExtractPlugin({
@@ -17,16 +20,20 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
+      title: 'Mark Conference',
       template: path.resolve(__dirname, 'src/templates/index.html'),
       filename: path.resolve(__dirname, 'dist/index.html'),
-      files: {
-        css: ['style.css'],
-        js: ['main.js']
-      },
-      title: 'ThreeJS'
+      chunks: ['app']
+    }),
+    new HtmlWebpackPlugin({
+      title: 'Mark Conference // Leave Your Mark',
+      template: path.resolve(__dirname, 'src/templates/mark.html'),
+      chunks: ['mobile'],
+      filename: path.resolve(__dirname, 'dist/mobile.html')
     })
   ],
   devServer: {
+    hot: true,
     contentBase: './dist',
     port: 3000,
     proxy: {
