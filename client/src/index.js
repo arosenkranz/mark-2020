@@ -33,19 +33,19 @@ const cameraPanArr = [
     x: 400,
     y: 30,
     z: -150,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 3
   },
   {
     x: -200,
     y: -10,
     z: 200,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 2
   },
   {
     x: 200,
     y: 40,
     z: -30,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 1.4
   },
   {
     x: -500,
@@ -108,28 +108,6 @@ function makePlanet(planetInfo) {
     })
     .repeat(Infinity);
   tween.start();
-
-  const moonCount = parseInt(getRandomNum(0, 3));
-
-  for (let i = 0; i < 0; i++) {
-    const moonOrbit = new THREE.Object3D();
-    moonOrbit.position.x = getRandomNum(
-      getRandomNum(-20, -7),
-      getRandomNum(8, 20)
-    );
-    planetOrbit.add(moonOrbit);
-
-    const moonMaterial = new THREE.MeshPhongMaterial({
-      color: 0x888888,
-      emissive: 0x222222
-    });
-    const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
-    const moonScale = getRandomNum(0.2, 1.2);
-    moonMesh.scale.set(moonScale, moonScale, moonScale);
-    moonOrbit.add(moonMesh);
-    moons.push(moonMesh);
-    // makeAxisGrid(moonMesh, 'moonMesh');
-  }
 }
 
 function makeWireFramePlanet(planetInfo) {
@@ -138,7 +116,6 @@ function makeWireFramePlanet(planetInfo) {
   const planetOrbit = new THREE.Object3D();
   planetOrbit.name = 'Planet';
 
-  // planetOrbit.position.y = getRandomNum(-10, 10);
   orbitContainer.add(planetOrbit);
   solarSystem.add(orbitContainer);
   // planets.push(planetOrbit);
@@ -216,28 +193,28 @@ function makeGui() {
 function targetCameraMain() {
   // pick new planet to look at
   activePlanet = planets[Math.floor(Math.random() * planets.length)];
-
-  var from = {
-    x: camera.position.x,
-    y: camera.position.y,
-    z: camera.position.z
+  console.log(activePlanet);
+  console.log(camera);
+  const from = {
+    x: camera.rotation.x,
+    y: camera.rotation.y,
+    z: camera.rotation.z
   };
 
-  var to = {
-    x: activePlanet.x,
-    y: activePlanet.y,
-    z: activePlanet.z
+  const to = {
+    x: activePlanet.position.x,
+    y: activePlanet.position.y,
+    z: activePlanet.position.z
   };
-  var tween = new TWEEN.Tween(from)
-    .to(to, 5000)
-    .easing(TWEEN.Easing.Quintic.InOut)
+  const tween = new TWEEN.Tween(from)
+    .to(to, 10000)
+    .easing(TWEEN.Easing.Quadratic.Out)
     .onUpdate(function() {
-      console.log(this);
-      camera.position.set(this.x, this.y, this.z);
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      // camera.position.set(this.x, this.y, this.z);
+      // camera.lookAt(new THREE.Vector3(0, 0, 0));
     })
     .onComplete(function() {
-      camera.lookAt(new THREE.Vector3(0, 0, 0));
+      camera.lookAt(activePlanet);
     })
     .start();
 }
@@ -260,7 +237,7 @@ function panCam({
   const camTweenThere = new TWEEN.Tween(camera.position)
     .to(camNewPosition, tweenDuration)
     .interpolation(TWEEN.Interpolation.CatmullRom)
-    .easing(TWEEN.Easing.Quadratic.Easing)
+    .easing(TWEEN.Easing.Quadratic.Out)
     .onComplete(() => panCam(newTarget));
 
   camTweenThere.start();
@@ -284,21 +261,6 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render(time) {
-  let timeSec = time * 0.001; // convert time to seconds
-
-  // pass in each object
-  planets.forEach(obj => {
-    // obj.rotation.y = time;
-    // obj.position.x = r * Math.cos(theta);
-    // obj.position.z = r * Math.sin(theta);
-  });
-
-  // moons.forEach(moon => {
-  //   moon.rotation.y = time;
-  //   moon.position.x = r * Math.cos(theta);
-  //   moon.position.z = r * Math.sin(theta);
-  // });
-
   rings.forEach(ring => {
     ring.rotation.y += 0.05;
     ring.rotation.x += 0.01;
@@ -321,9 +283,7 @@ function render(time) {
 
   TWEEN.update();
   controls.update();
-
   renderer.render(scene, camera);
-
   requestAnimationFrame(render);
 }
 
@@ -431,16 +391,26 @@ makeStarField(scene);
 createLensFlare(scene);
 makeGui();
 
+const circleGeometry = new THREE.CircleGeometry(100, 100);
+circleGeometry.vertices.shift();
+const line = new THREE.Line(
+  circleGeometry,
+  new THREE.LineBasicMaterial({ color: 'aqua' })
+);
+line.rotation.x = Math.PI * 0.5;
+// line.scale.set(20, 20, 20);
+scene.add(line);
+
 makePlanet();
 makePlanet();
 makeWireFramePlanet();
 makeWireFramePlanet();
 
 const newTarget = cameraPanArr[Math.floor(Math.random() * cameraPanArr.length)];
-// panCam(newTarget);
+panCam(newTarget);
 
-// targetCameraMain();
 requestAnimationFrame(render);
 
 console.log(moons);
 console.log(planets);
+targetCameraMain();

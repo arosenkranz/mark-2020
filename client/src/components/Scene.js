@@ -34,7 +34,7 @@ function createSpotlights() {
 
 const createScene = () => {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x000000);
+  scene.background = new THREE.Color(0x000fff);
 
   // {
   //   const skyColor = 0xb1e1ff; // light blue
