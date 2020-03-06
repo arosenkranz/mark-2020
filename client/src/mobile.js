@@ -1,4 +1,6 @@
-import io from 'socket.io-client';
+import crypto from 'crypto';
+import socket from './api/sockets';
+
 import './templates/mobile.css';
 import logo from './images/mark-conference-logo-full-color.png';
 
@@ -13,17 +15,19 @@ logoImg.setAttribute('src', logo);
 logoImg.classList.add('w-50', 'mx-auto');
 $logo.appendChild(logoImg);
 
-const socket = io(
-  location.hostname === 'localhost' ? 'http://localhost:3001' : ''
-);
-
 const submitFormHandler = event => {
   event.preventDefault();
 
   const formData = {
+    id: crypto.randomBytes(16).toString('hex'),
     name: $inputName.value.trim(),
     message: $markMessage.value.trim()
   };
+
+  if (!formData.name || !formData.message) {
+    return false;
+  }
+
   console.log(formData);
   socket.emit('incoming-message', formData);
 };

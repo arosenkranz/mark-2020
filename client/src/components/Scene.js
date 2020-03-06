@@ -99,7 +99,7 @@ const createScene = () => {
   }
 
   const gridHelper = new THREE.GridHelper(1000, 100, 0x0000ff, 0x808080);
-  scene.add(gridHelper);
+  // scene.add(gridHelper);
 
   return scene;
 };

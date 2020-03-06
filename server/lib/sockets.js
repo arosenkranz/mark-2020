@@ -8,7 +8,7 @@ const T = new Twit({
   access_token_secret: process.env.TWITTER_ACCESSTOKEN_SECRET
 });
 
-const nj = [-74.441416, 40.518744];
+// const nj = [-74.441416, 40.518744];
 
 const stream = T.stream('statuses/filter', {
   track: ['markconf', '#mymark', '#markconf', 'mediacutlet']
@@ -20,7 +20,7 @@ module.exports = io => {
 
     socket.on('incoming-message', message => {
       console.log(message);
-      socket.emit('new-message', message);
+      io.emit('new-message', message);
     });
 
     stream.on('tweet', tweet => {

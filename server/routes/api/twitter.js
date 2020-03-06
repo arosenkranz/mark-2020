@@ -1,6 +1,9 @@
 const Twit = require('twit');
+const Filter = require('bad-words');
 const router = require('express').Router();
 require('dotenv').config();
+
+const filter = new Filter();
 
 const T = new Twit({
   consumer_key: process.env.TWITTER_APIKEY,
@@ -13,14 +16,26 @@ router.get('/', (req, res) => {
   T.get(
     'search/tweets',
     {
-      q: '#mymark OR #markconf OR "mark conference" OR rutgers'
+      q: '#myMark OR #markconf OR #rutgers'
     },
     (err, data, response) => {
       if (err) {
         console.log(err);
         return res.end();
       }
-      res.json({ data, response });
+      const filteredTweets = data.statuses
+        .filter(status => {
+          return status.lang === 'en' && !filter.isProfane(status.text);
+        })
+        .map(status => {
+          return {
+            id: status.id_str,
+            text: status.text,
+            name: status.user.screen_name
+          };
+        });
+
+      res.json(filteredTweets);
     }
   );
 });

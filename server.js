@@ -5,7 +5,9 @@ const io = require('socket.io')(http);
 
 const PORT = process.env.PORT || 3001;
 
-app.use(express.static('client/dist'));
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static('client/dist'));
+}
 
 require('./server/lib/sockets')(io);
 app.use(require('./server/routes'));

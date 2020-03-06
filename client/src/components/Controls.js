@@ -6,8 +6,6 @@ const makeControls = (camera, canvas) => {
   controls.enableDamping = true;
   controls.enableZoom = true;
   controls.zoomSpeed = 0.2;
-  controls.minPolarAngle = 0.8;
-  controls.maxPolarAngle = 2.4;
   controls.maxDistance = 850;
   controls.minDistance = 40;
   controls.enablePan = true;
