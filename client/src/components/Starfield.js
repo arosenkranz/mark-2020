@@ -5,9 +5,9 @@ const makeStarField = scene => {
   const vertices = [];
 
   for (let i = 0; i < 10000; i++) {
-    const x = THREE.MathUtils.randFloatSpread(2000);
-    const y = THREE.MathUtils.randFloatSpread(2000);
-    const z = THREE.MathUtils.randFloatSpread(2000);
+    const x = THREE.MathUtils.randFloatSpread(3000);
+    const y = THREE.MathUtils.randFloatSpread(3000);
+    const z = THREE.MathUtils.randFloatSpread(3000);
 
     vertices.push(x, y, z);
   }
@@ -20,8 +20,8 @@ const makeStarField = scene => {
   const starField = new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      size: 0.8,
-      color: 0xfffeee
+      size: 0.7,
+      color: 0xfffee3
     })
   );
   scene.add(starField);

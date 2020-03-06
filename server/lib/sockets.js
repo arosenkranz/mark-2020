@@ -11,7 +11,7 @@ const T = new Twit({
 // const nj = [-74.441416, 40.518744];
 
 const stream = T.stream('statuses/filter', {
-  track: ['markconf', '#mymark', '#markconf', 'mediacutlet']
+  track: ['markconf', '#mymark', 'mymark', '#markconf', 'mediacutlet']
   // locations: nj
 });
 module.exports = io => {
@@ -25,7 +25,7 @@ module.exports = io => {
 
     stream.on('tweet', tweet => {
       console.log(tweet);
-      socket.emit('new-tweet', tweet);
+      io.emit('new-tweet', tweet);
     });
   });
 };
