@@ -80,7 +80,7 @@ function makeSphereGeometry() {
 
 function makePlanet(planetInfo, planetArr) {
   const orbitContainer = new THREE.Object3D();
-  orbitContainer.rotation.x = getRandomNum(-0.3, 0.3);
+  orbitContainer.rotation.x = getRandomNum(-0.4, 0.4);
 
   const planetOrbit = new THREE.Object3D();
   planetOrbit.name = planetInfo.id;
@@ -94,9 +94,9 @@ function makePlanet(planetInfo, planetArr) {
     Math.floor(Math.random() * planetArr.length)
   ].clone();
 
-  const planetScale = getRandomNum(1.5, 10.5);
+  const planetScale = getRandomNum(1.5, 10);
   planetMesh.scale.set(planetScale, planetScale, planetScale);
-  const randomX = getRandomNum(100, 700);
+  const randomX = getRandomNum(100, 800);
   const x = Math.round(Math.random()) ? randomX : -randomX;
   console.log(x);
   planetMesh.position.x = x;
@@ -124,6 +124,8 @@ function makePlanet(planetInfo, planetArr) {
 
   const ringGeometry = new THREE.TorusBufferGeometry(size.x + 10, 8, 10, 7);
   const planetRingMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+  planetRingMesh.castShadow = false;
+  planetRingMesh.receiveShadow = false;
   planetRingMesh.position.set(x, y, z);
 
   planetOrbit.add(planetRingMesh);
@@ -325,7 +327,7 @@ function render(time) {
   // }
 
   if (materialShader) {
-    materialShader.uniforms.time.value = time / 3000;
+    materialShader.uniforms.time.value = time / 2500;
   }
 
   TWEEN.update();
@@ -360,7 +362,7 @@ scene.add(solarSystem);
 const sunMaterial = new THREE.MeshLambertMaterial({
   color: '#dc1f26',
   transparent: true,
-  opacity: 0.7
+  opacity: 0.9
 });
 
 sunMaterial.onBeforeCompile = shader => {
@@ -405,10 +407,14 @@ const ringMaterial = new THREE.MeshPhongMaterial({
 
 const ringGeometry = new THREE.TorusBufferGeometry(70, 10, 5, 20);
 const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+ringMesh.receiveShadow = true;
+ringMesh.castShadow = true;
 rings.push(ringMesh);
 solarSystem.add(ringMesh);
 
 const ringMesh2 = new THREE.Mesh(ringGeometry, ringMaterial);
+ringMesh.receiveShadow = false;
+ringMesh.castShadow = false;
 solarSystem.add(ringMesh2);
 
 makeStarField(scene);
@@ -447,7 +453,7 @@ function setActivePlanet(planetNum = 0) {
 
   setTimeout(() => {
     setActivePlanet(nextPlanetNum);
-  }, 90000);
+  }, 70000);
 }
 
 socket.on('connect', () => {
@@ -495,6 +501,18 @@ setInterval(async () => {
     const filteredTweets = tweets.filter(tweet => {
       return !postIds.includes(tweet.id);
     });
+
+    posts.concat(filteredTweets);
+
+    let num = 0;
+    let intervalId = setInterval(() => {
+      if (num > filteredTweets.length) {
+        clearInterval(intervalId);
+        return;
+      }
+      makePlanet(filteredTweets[num], planetTemplates);
+      num++;
+    }, 3000);
   } catch (err) {
     console.log(err);
   }
