@@ -12,7 +12,7 @@ const $logo = document.querySelector('#logo');
 
 const logoImg = document.createElement('img');
 logoImg.setAttribute('src', logo);
-logoImg.classList.add('w-50', 'mx-auto');
+logoImg.classList.add('w-75', 'mx-auto');
 $logo.appendChild(logoImg);
 
 const submitFormHandler = event => {
@@ -30,6 +30,10 @@ const submitFormHandler = event => {
 
   console.log(formData);
   socket.emit('incoming-message', formData);
+
+  document.querySelector(
+    '#app'
+  ).innerHTML = `<h2>Check out the galaxy above to see your mark!</h2>`;
 };
 
 $markForm.addEventListener('submit', submitFormHandler);

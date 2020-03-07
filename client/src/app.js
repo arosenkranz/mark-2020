@@ -202,8 +202,10 @@ function makeGui() {
 }
 
 // set camera tween
-function targetCameraMain(activePlanet) {
-  const target = activePlanet.children[0].getWorldPosition();
+function targetCameraMain(activePlanet = undefined) {
+  const target = activePlanet
+    ? activePlanet.children[0].getWorldPosition()
+    : sunMesh.getWorldPosition();
   console.log(activePlanet);
 
   setTimeout(() => {
@@ -211,20 +213,35 @@ function targetCameraMain(activePlanet) {
     console.log(activePlanet);
   }, 1000);
 
+  const originalTarget = { ...controls.target };
+
   const targetTween = new TWEEN.Tween(controls.target)
     .to(target, 10000)
     .interpolation(TWEEN.Interpolation.CatmullRom)
     .easing(TWEEN.Easing.Sinusoidal.In)
-    .onUpdate(() => controls.update())
+    // .onUpdate(() => controls.update())
     .onComplete(() => {
-      camFocused = true;
-
       // setTimeout(() => {
       //   camFocused = false;
+      //   const $displayMessage = document.querySelector('#display-message');
+      //   $displayMessage.classList.add('hide');
       //   targetCameraMain();
       // }, 25000);
-    })
-    .start();
+    });
+
+  const tweenBack = new TWEEN.Tween(controls.target)
+    .delay(20000)
+    .to({ x: 0, y: 0, z: 0 }, 10000)
+    .interpolation(TWEEN.Interpolation.CatmullRom)
+    .easing(TWEEN.Easing.Sinusoidal.In)
+    .onStart(() => {
+      const $displayMessage = document.querySelector('#display-message');
+      $displayMessage.classList.add('hide');
+      scene.remove(activePlanet.children[1]);
+    });
+
+  targetTween.chain(tweenBack);
+  targetTween.start();
 }
 
 function panCam({
@@ -352,7 +369,7 @@ sunMaterial.onBeforeCompile = shader => {
 const sunMaterial2 = new THREE.MeshPhongMaterial({
   color: new THREE.Color('#fff'),
   emissive: new THREE.Color('#3c0752'),
-  shininess: new THREE.Color('#fc6bcf'),
+  shininess: new THREE.Color('#dc1f26'),
   shininess: 7,
   flatShading: true,
   transparent: 1,
@@ -388,7 +405,7 @@ wireframes.push(wireframePlanet);
 
 const ringMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color('#fff'),
-  emissive: new THREE.Color('#fc6bcf'),
+  emissive: new THREE.Color('#dc1f26'),
   shininess: new THREE.Color('#fff'),
   shininess: 10,
   flatShading: true,
@@ -403,7 +420,6 @@ rings.push(ringMesh);
 solarSystem.add(ringMesh);
 
 makeStarField(scene);
-// createLensFlare(scene);
 
 // setInterval(async () => {
 //   try {
@@ -418,8 +434,17 @@ makeStarField(scene);
 function setActivePlanet(planetNum = 0) {
   // pick new planet to look at
   activePlanet = planets[planetNum];
+
+  // const activeMesh = ringMesh.clone();
+  // rings.push(activeMesh);
+  // const { x, y, z } = activePlanet.children[0].position;
+  // console.log(x, y, z);
+  // activeMesh.position.set(x, y, z);
+  // console.log(ringMesh.material, ringMesh.material.opacity);
+  // activePlanet.add(activeMesh);
+
   const $displayMessage = document.querySelector('#display-message');
-  $displayMessage.classList.add('hide');
+  // $displayMessage.classList.add('hide');
 
   targetCameraMain(activePlanet);
 
@@ -444,7 +469,7 @@ function setActivePlanet(planetNum = 0) {
 
   setTimeout(() => {
     setActivePlanet(nextPlanetNum);
-  }, 30000);
+  }, 120000);
 }
 
 socket.on('connect', () => {
@@ -454,6 +479,10 @@ socket.on('connect', () => {
     posts.push(data);
     makePlanet(data, planetTemplates);
     localStorage.setItem('messages', JSON.stringify(posts));
+  });
+
+  socket.on('new-tween', data => {
+    console.log(data);
   });
 });
 
@@ -468,16 +497,13 @@ async function init() {
   makePlanet('', planetTemplates);
   makePlanet('', planetTemplates);
   makePlanet('', planetTemplates);
-  // makePlanet('_', planetTemplates);
-  // makePlanet('_', planetTemplates);
-  // makePlanet('_', planetTemplates);
 
   setTimeout(() => {
     setActivePlanet();
     const newTarget =
       cameraPanArr[Math.floor(Math.random() * cameraPanArr.length)];
     panCam(newTarget);
-  }, 20000);
+  }, 10000);
 
   requestAnimationFrame(render);
 }

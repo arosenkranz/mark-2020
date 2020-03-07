@@ -60,7 +60,7 @@ const createScene = () => {
 
   {
     const near = 0.1;
-    const far = 1500;
+    const far = 2000;
     const color = '#010d14';
     scene.fog = new THREE.Fog(color, near, far);
     scene.background = new THREE.Color(color);

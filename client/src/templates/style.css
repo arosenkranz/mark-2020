@@ -39,8 +39,16 @@ header {
   font-weight: 888;
 }
 
+header h1 {
+  margin: 8px 0;
+}
+
+header h3 {
+  margin: 8px 0;
+}
+
 footer {
-  padding: 20px;
+  padding: 10px;
   display: flex;
   align-items: flex-end;
   position: fixed;
@@ -52,7 +60,7 @@ footer {
 
 footer #logo-area {
   flex: 1 1 10%;
-  padding: 10px;
+  padding: 5px;
   background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -64,13 +72,17 @@ footer #display-message {
   flex: 1 1 85%;
   padding: 10px;
   transition: opacity 1s;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   overflow: hidden;
   line-height: 1.5;
 }
 
 .hide {
   opacity: 0;
+}
+
+.red {
+  color: #dc1f26;
 }
 
 #root {
