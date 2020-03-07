@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 const makeCamera = () => {
   // set camera positioning
-  const fov = 70;
+  const fov = 65;
   const aspect = window.clientWidth / window.clientHeight;
   const near = 0.1;
   const far = 1000;

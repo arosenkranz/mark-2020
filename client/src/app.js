@@ -83,11 +83,9 @@ function makePlanet(planetInfo, planetArr) {
 
   const planetOrbit = new THREE.Object3D();
   planetOrbit.name = planetInfo.id;
-
+  planetOrbit.userData = planetInfo;
   orbitContainer.add(planetOrbit);
-
   solarSystem.add(orbitContainer);
-
   planets.push(planetOrbit);
 
   // const planetMesh = new THREE.Mesh(sphereGeometry, planetMaterial);
@@ -204,10 +202,7 @@ function makeGui() {
 }
 
 // set camera tween
-function targetCameraMain() {
-  // pick new planet to look at
-  activePlanet = planets[Math.floor(Math.random() * planets.length)];
-
+function targetCameraMain(activePlanet) {
   const target = activePlanet.children[0].getWorldPosition();
   console.log(activePlanet);
 
@@ -224,10 +219,10 @@ function targetCameraMain() {
     .onComplete(() => {
       camFocused = true;
 
-      setTimeout(() => {
-        camFocused = false;
-        targetCameraMain();
-      }, 25000);
+      // setTimeout(() => {
+      //   camFocused = false;
+      //   targetCameraMain();
+      // }, 25000);
     })
     .start();
 }
@@ -377,7 +372,7 @@ const wireframePlanet = new THREE.Mesh(
     color: new THREE.Color('#fff'),
     emissive: new THREE.Color('#fc6bcf'),
     shininess: new THREE.Color('#fff'),
-    shininess: 10,
+    shininess: 8,
     flatShading: true,
     transparent: 1,
     opacity: 0.7,
@@ -420,13 +415,36 @@ makeStarField(scene);
 //   }
 // }, 20000);
 
-function showMessages(slideNum = 0) {
-  if (slideNum >= posts.length) {
-    return false;
+function setActivePlanet(planetNum = 0) {
+  // pick new planet to look at
+  activePlanet = planets[planetNum];
+  const $displayMessage = document.querySelector('#display-message');
+  $displayMessage.classList.add('hide');
+
+  targetCameraMain(activePlanet);
+
+  if (activePlanet.userData) {
+    // write to page
+    const { name, message } = activePlanet.userData;
+
+    setTimeout(() => {
+      $displayMessage.innerHTML = `
+  ${message} - <span class="name">${name}</span>
+  `;
+      $displayMessage.classList.remove('hide');
+    }, 5000);
   }
 
-  // set active planet
-  activePlanet = planets.find(planet => planet.name === posts[slideNum].id);
+  // increase planetNum count
+  let nextPlanetNum = planetNum + 1;
+
+  if (nextPlanetNum >= planets.length) {
+    nextPlanetNum = 0;
+  }
+
+  setTimeout(() => {
+    setActivePlanet(nextPlanetNum);
+  }, 30000);
 }
 
 async function init() {
@@ -437,19 +455,19 @@ async function init() {
     makePlanet(post, planetTemplates);
   });
 
-  // makePlanet('_', planetTemplates);
-  // makePlanet('_', planetTemplates);
-  // makePlanet('_', planetTemplates);
+  makePlanet('_', planetTemplates);
+  makePlanet('_', planetTemplates);
+  makePlanet('_', planetTemplates);
   // makePlanet('_', planetTemplates);
   // makePlanet('_', planetTemplates);
   // makePlanet('_', planetTemplates);
 
   setTimeout(() => {
-    targetCameraMain();
+    setActivePlanet();
     const newTarget =
       cameraPanArr[Math.floor(Math.random() * cameraPanArr.length)];
     panCam(newTarget);
-  }, 10000);
+  }, 20000);
 
   requestAnimationFrame(render);
 
