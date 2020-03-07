@@ -30,14 +30,12 @@ export const loadPlanets = planetObjs => {
           const oldMat = child.material;
           console.log(oldMat);
           child.material = new THREE.MeshPhongMaterial({
-            color: new THREE.Color('#fff'),
-            emissive: new THREE.Color('#fc6bcf'),
-            shininess: new THREE.Color('#fff'),
-            shininess: 10,
+            color: new THREE.Color('#8f7459'),
+            specular: new THREE.Color('#ffffff'),
+            shininess: 60,
             flatShading: true,
             transparent: 1,
-            opacity: 1,
-            wireframe: false
+            opacity: 1
           });
         }
       });
@@ -53,14 +51,12 @@ export const loadPlanets = planetObjs => {
             const oldMat = child.material;
 
             child.material = new THREE.MeshPhongMaterial({
-              color: new THREE.Color('#fff'),
-              emissive: new THREE.Color('#fc6bcf'),
-              shininess: new THREE.Color('#fff'),
-              shininess: 10,
+              color: new THREE.Color('#6abaa9'),
+              specular: new THREE.Color('#ffffff'),
+              shininess: 30,
               flatShading: true,
               transparent: 1,
-              opacity: 1,
-              wireframe: false
+              opacity: 1
             });
           }
         });
@@ -76,14 +72,12 @@ export const loadPlanets = planetObjs => {
               const oldMat = child.material;
 
               child.material = new THREE.MeshPhongMaterial({
-                color: new THREE.Color('#fff'),
-                emissive: new THREE.Color('#fc6bcf'),
-                shininess: new THREE.Color('#fff'),
-                shininess: 10,
-                flatShading: true,
+                color: new THREE.Color('#8f7459'),
+                specular: new THREE.Color('#ffffff'),
+                shininess: 20,
+                flatShading: false,
                 transparent: 1,
-                opacity: 1,
-                wireframe: false
+                opacity: 1
               });
             }
           });
@@ -98,14 +92,12 @@ export const loadPlanets = planetObjs => {
                 const oldMat = child.material;
 
                 child.material = new THREE.MeshPhongMaterial({
-                  color: new THREE.Color('#fff'),
-                  emissive: new THREE.Color('#fc6bcf'),
-                  shininess: new THREE.Color('#fff'),
-                  shininess: 10,
+                  color: new THREE.Color('#6abaa9'),
+                  specular: new THREE.Color('#ffffff'),
+                  shininess: 14,
                   flatShading: true,
                   transparent: 1,
-                  opacity: 1,
-                  wireframe: false
+                  opacity: 1
                 });
               }
             });
@@ -121,13 +113,12 @@ export const loadPlanets = planetObjs => {
 
                   child.material = new THREE.MeshPhongMaterial({
                     color: new THREE.Color('#dd88aa'),
-                    emissive: new THREE.Color('#f5424b'),
-                    shininess: new THREE.Color('#fff'),
-                    shininess: 10,
+                    color: new THREE.Color('#494949'),
+                    specular: new THREE.Color('#ffffff'),
+                    shininess: 60,
                     flatShading: true,
                     transparent: 1,
-                    opacity: 1,
-                    wireframe: false
+                    opacity: 1
                   });
                 }
               });
@@ -144,12 +135,12 @@ export const loadPlanets = planetObjs => {
                     child.material = new THREE.MeshPhongMaterial({
                       color: new THREE.Color('#fff'),
                       emissive: new THREE.Color('#f5424b'),
-                      shininess: new THREE.Color('#fff'),
-                      shininess: 4,
+                      color: new THREE.Color('#494949'),
+                      specular: new THREE.Color('#ffffff'),
+                      shininess: 60,
                       flatShading: true,
                       transparent: 1,
-                      opacity: 1,
-                      wireframe: false
+                      opacity: 1
                     });
                   }
                 });
@@ -165,13 +156,11 @@ export const loadPlanets = planetObjs => {
 
                       child.material = new THREE.MeshPhongMaterial({
                         color: new THREE.Color('#fff'),
-                        emissive: new THREE.Color('#f5424b'),
-                        shininess: new THREE.Color('#fff'),
-                        shininess: 6,
-                        flatShading: false,
+                        specular: new THREE.Color('#ffffff'),
+                        shininess: 25,
+                        flatShading: true,
                         transparent: 1,
-                        opacity: 1,
-                        wireframe: false
+                        opacity: 1
                       });
                     }
                   });
@@ -187,13 +176,11 @@ export const loadPlanets = planetObjs => {
 
                         child.material = new THREE.MeshPhongMaterial({
                           color: new THREE.Color('#f5424b'),
-                          emissive: new THREE.Color('#f5424b'),
-                          shininess: new THREE.Color('#fff'),
-                          shininess: 8,
+                          specular: new THREE.Color('#ffffff'),
+                          shininess: 30,
                           flatShading: true,
                           transparent: 1,
-                          opacity: 1,
-                          wireframe: false
+                          opacity: 1
                         });
                       }
                     });
@@ -207,15 +194,13 @@ export const loadPlanets = planetObjs => {
                           child.receiveShadow = true;
                           const oldMat = child.material;
                           console.log(oldMat);
-                          child.material = new THREE.MeshLambertMaterial({
+                          child.material = new THREE.MeshPhongMaterial({
                             color: new THREE.Color('#494949'),
-                            emissive: new THREE.Color('#24bdff'),
-                            shininess: new THREE.Color('#fff'),
-                            shininess: 4,
+                            specular: new THREE.Color('#ffffff'),
+                            shininess: 10,
                             flatShading: true,
                             transparent: 1,
-                            opacity: 1,
-                            wireframe: false
+                            opacity: 1
                           });
                         }
                       });
@@ -231,20 +216,60 @@ export const loadPlanets = planetObjs => {
 
                             child.material = new THREE.MeshPhongMaterial({
                               color: new THREE.Color('#fff'),
-                              emissive: new THREE.Color('#24bdff'),
-                              shininess: new THREE.Color('#fff'),
-                              shininess: 10,
                               flatShading: true,
                               transparent: 1,
-                              opacity: 1,
-                              wireframe: false
+                              opacity: 1
                             });
                           }
                         });
 
                         planetObjs.push(obj);
+                        loader.load(planet11, obj => {
+                          obj.traverse(child => {
+                            if (child.isMesh) {
+                              child.scale.set(0.04, 0.04, 0.04);
+                              child.castShadow = true;
+                              child.receiveShadow = true;
+                              const oldMat = child.material;
 
-                        resolve(planetObjs);
+                              child.material = new THREE.MeshPhongMaterial({
+                                color: new THREE.Color('#24bdff'),
+                                flatShading: true,
+                                transparent: 1,
+                                opacity: 1,
+                                roughness: 0.8,
+                                metalness: 0.3,
+                                clearCoat: 0.6,
+                                clearCoatRoughness: 0.2
+                              });
+                            }
+                          });
+
+                          planetObjs.push(obj);
+
+                          loader.load(planet12, obj => {
+                            obj.traverse(child => {
+                              if (child.isMesh) {
+                                child.scale.set(0.04, 0.04, 0.04);
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                                const oldMat = child.material;
+
+                                child.material = new THREE.MeshPhongMaterial({
+                                  color: new THREE.Color('#fff'),
+                                  emissive: new THREE.Color('#24bdff'),
+                                  flatShading: true,
+                                  transparent: 1,
+                                  opacity: 1
+                                });
+                              }
+                            });
+
+                            planetObjs.push(obj);
+
+                            resolve(planetObjs);
+                          });
+                        });
                       });
                     });
                   });
