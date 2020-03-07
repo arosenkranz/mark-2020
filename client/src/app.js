@@ -447,6 +447,16 @@ function setActivePlanet(planetNum = 0) {
   }, 30000);
 }
 
+socket.on('connect', () => {
+  console.log('socket connected');
+  socket.on('new-message', data => {
+    console.log(data);
+    posts.push(data);
+    makePlanet(data, planetTemplates);
+    localStorage.setItem('messages', JSON.stringify(posts));
+  });
+});
+
 async function init() {
   planetTemplates = await loadPlanets([]);
   console.log(planets);
@@ -455,9 +465,9 @@ async function init() {
     makePlanet(post, planetTemplates);
   });
 
-  makePlanet('_', planetTemplates);
-  makePlanet('_', planetTemplates);
-  makePlanet('_', planetTemplates);
+  makePlanet('', planetTemplates);
+  makePlanet('', planetTemplates);
+  makePlanet('', planetTemplates);
   // makePlanet('_', planetTemplates);
   // makePlanet('_', planetTemplates);
   // makePlanet('_', planetTemplates);
@@ -470,18 +480,7 @@ async function init() {
   }, 20000);
 
   requestAnimationFrame(render);
-
-  socket.on('connect', () => {
-    console.log('socket connected');
-    socket.on('new-message', data => {
-      console.log(data);
-      posts.push(data);
-      makePlanet(data, planetTemplates);
-      localStorage.setItem('messages', JSON.stringify(posts));
-    });
-  });
 }
-
 init();
 
 // const circleGeometry = new THREE.CircleGeometry(100, 100);
