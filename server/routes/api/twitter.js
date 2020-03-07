@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
   T.get(
     'search/tweets',
     {
-      q: '#myMark OR #markconf OR #rutgers'
+      q: '#myMark OR #markconf OR "mark conference rutgers"'
     },
     (err, data, response) => {
       if (err) {

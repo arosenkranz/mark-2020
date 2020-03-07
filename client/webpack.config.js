@@ -35,13 +35,13 @@ module.exports = {
   devServer: {
     hot: true,
     contentBase: './dist',
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3001',
-        pathRewrite: { '^/api': '' }
-      }
-    }
+    port: 3000
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://localhost:3001',
+    //     pathRewrite: { '^/api': '' }
+    //   }
+    // }
   },
   output: {
     filename: '[name].bundle.js',

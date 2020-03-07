@@ -30,6 +30,7 @@ const wireframes = [];
 const rings = [];
 
 let posts = JSON.parse(localStorage.getItem('messages')) || [];
+let activePlanetNum = 0;
 
 let activePlanet;
 let camFocused = false;
@@ -41,25 +42,25 @@ const cameraPanArr = [
     x: 400,
     y: 30,
     z: -150,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 3
   },
   {
     x: -200,
     y: -10,
     z: 200,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 3.5
   },
   {
     x: 200,
     y: 100,
     z: -30,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 2.75
   },
   {
     x: -500,
     y: 10,
     z: -240,
-    duration: 60 * 1000
+    duration: 60 * 1000 * 5
   }
 ];
 
@@ -109,7 +110,24 @@ function makePlanet(planetInfo, planetArr) {
   planetMesh.position.z = z;
 
   planetOrbit.add(planetMesh);
-  // planets.push(planetMesh);
+
+  const size = new THREE.Box3().setFromObject(planetMesh).getSize();
+
+  const ringMaterial = new THREE.MeshPhongMaterial({
+    color: new THREE.Color('#f54248'),
+    shininess: 30,
+    flatShading: true,
+    transparent: 1,
+    opacity: 0,
+    wireframe: true
+  });
+
+  const ringGeometry = new THREE.TorusBufferGeometry(size.x + 10, 8, 10, 7);
+  const planetRingMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+  planetRingMesh.position.set(x, y, z);
+
+  planetOrbit.add(planetRingMesh);
+  rings.push(planetRingMesh);
 
   const tween = new TWEEN.Tween(planetOrbit.rotation).to(
     { y: '+' + Math.PI * 2, x: '+' + Math.PI * 2 },
@@ -221,7 +239,9 @@ function targetCameraMain(activePlanet = undefined) {
     .onStart(() => {
       const $displayMessage = document.querySelector('#display-message');
       $displayMessage.classList.add('hide');
-      scene.remove(activePlanet.children[1]);
+      new TWEEN.Tween(activePlanet.children[1].material)
+        .to({ opacity: 0 }, 3000)
+        .start();
     });
 
   targetTween.chain(tweenBack);
@@ -234,10 +254,11 @@ function panCam({
   z: zTarget,
   duration: tweenDuration
 }) {
+  const { x, y, z } = activePlanet.children[0].getWorldPosition();
   const camNewPosition = {
-    x: [xTarget / 2, xTarget, randomRange(camera.position.x)],
-    y: [yTarget / 2, yTarget, randomRange(camera.position.y)],
-    z: [zTarget / 2, zTarget, randomRange(camera.position.z)]
+    x: [x + 30, x / 2, x + 20, randomRange(camera.position.x)],
+    y: [y, y / 2, y, randomRange(camera.position.y)],
+    z: [z + 20, z + 40, z - 20, randomRange(camera.position.z)]
   };
 
   const newTarget =
@@ -274,19 +295,19 @@ function resizeRendererToDisplaySize(renderer) {
 }
 
 function render(time) {
-  // rings.forEach(ring => {
-  //   ring.rotation.y += 0.02;
-  //   ring.rotation.x += 0.01;
-  //   ring.rotation.z -= 0.03;
-  // });
+  rings.forEach(ring => {
+    ring.rotation.y += 0.03;
+    // ring.rotation.x += 0.01;
+    // ring.rotation.z -= 0.0;
+  });
 
   ringMesh.rotation.y += 0.02;
   ringMesh.rotation.x += 0.01;
   ringMesh.rotation.z -= 0.03;
 
-  ringMesh2.rotation.y += 0.06;
+  ringMesh2.rotation.y += 0.03;
   ringMesh2.rotation.x += 0.02;
-  ringMesh2.rotation.z += 0.05;
+  ringMesh2.rotation.z += 0.01;
 
   sunMesh.rotation.x += 0.001;
   sunMesh.rotation.y += 0.001;
@@ -338,8 +359,8 @@ scene.add(solarSystem);
 // MAKE SUN
 const sunMaterial = new THREE.MeshLambertMaterial({
   color: '#dc1f26',
-  transparent: false,
-  opacity: 0.5
+  transparent: true,
+  opacity: 0.7
 });
 
 sunMaterial.onBeforeCompile = shader => {
@@ -375,11 +396,10 @@ solarSystem.add(sunMesh);
 
 const ringMaterial = new THREE.MeshPhongMaterial({
   color: new THREE.Color('#fff'),
-  // emissive: new THREE.Color('#dc1f26'),
   shininess: 10,
   flatShading: true,
   transparent: 1,
-  opacity: 1,
+  opacity: 0.7,
   wireframe: true
 });
 
@@ -396,6 +416,10 @@ makeStarField(scene);
 function setActivePlanet(planetNum = 0) {
   // pick new planet to look at
   activePlanet = planets[planetNum];
+
+  new TWEEN.Tween(activePlanet.children[1].material)
+    .to({ opacity: 1 }, 3000)
+    .start();
 
   const $displayMessage = document.querySelector('#display-message');
   $displayMessage.classList.add('hide');
@@ -423,7 +447,7 @@ function setActivePlanet(planetNum = 0) {
 
   setTimeout(() => {
     setActivePlanet(nextPlanetNum);
-  }, 120000);
+  }, 90000);
 }
 
 socket.on('connect', () => {
@@ -463,6 +487,19 @@ async function init() {
 }
 init();
 
+setInterval(async () => {
+  try {
+    const { data: tweets } = await getTweets();
+    console.log(tweets);
+    const postIds = posts.map(({ id }) => id);
+    const filteredTweets = tweets.filter(tweet => {
+      return !postIds.includes(tweet.id);
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}, 60000 * 5);
+
 // const circleGeometry = new THREE.CircleGeometry(100, 100);
 // circleGeometry.vertices.shift();
 // const line = new THREE.Line(
@@ -483,16 +520,6 @@ init();
 // makePlanet();
 // makeWireFramePlanet();
 // makeWireFramePlanet();
-
-// setInterval(async () => {
-//   try {
-//     const { data: tweets } = await getTweets();
-//     console.log(tweets);
-//     const filteredTweets = tweets.filter(tweet => {});
-//   } catch (err) {
-//     console.log(err);
-//   }
-// }, 20000);
 
 // const activeMesh = ringMesh.clone();
 // rings.push(activeMesh);

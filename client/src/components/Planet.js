@@ -195,9 +195,9 @@ export const loadPlanets = planetObjs => {
                           const oldMat = child.material;
                           console.log(oldMat);
                           child.material = new THREE.MeshPhongMaterial({
-                            color: new THREE.Color('#494949'),
+                            color: new THREE.Color('#f5424b'),
                             specular: new THREE.Color('#ffffff'),
-                            shininess: 10,
+                            shininess: 20,
                             flatShading: true,
                             transparent: 1,
                             opacity: 1
@@ -215,7 +215,7 @@ export const loadPlanets = planetObjs => {
                             const oldMat = child.material;
 
                             child.material = new THREE.MeshPhongMaterial({
-                              color: new THREE.Color('#fff'),
+                              color: new THREE.Color('#f5424b'),
                               flatShading: true,
                               transparent: 1,
                               opacity: 1
@@ -236,11 +236,7 @@ export const loadPlanets = planetObjs => {
                                 color: new THREE.Color('#24bdff'),
                                 flatShading: true,
                                 transparent: 1,
-                                opacity: 1,
-                                roughness: 0.8,
-                                metalness: 0.3,
-                                clearCoat: 0.6,
-                                clearCoatRoughness: 0.2
+                                opacity: 1
                               });
                             }
                           });
@@ -256,8 +252,8 @@ export const loadPlanets = planetObjs => {
                                 const oldMat = child.material;
 
                                 child.material = new THREE.MeshPhongMaterial({
-                                  color: new THREE.Color('#fff'),
-                                  emissive: new THREE.Color('#24bdff'),
+                                  color: new THREE.Color('#f5424b'),
+                                  shininess: 20,
                                   flatShading: true,
                                   transparent: 1,
                                   opacity: 1
