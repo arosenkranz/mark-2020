@@ -423,7 +423,7 @@ function setActivePlanet(planetNum = 0) {
 
   targetCameraMain(activePlanet);
 
-  if (activePlanet.userData) {
+  if (activePlanet.userData.name && activePlanet.userData.message) {
     // write to page
     const { name, message } = activePlanet.userData;
 
